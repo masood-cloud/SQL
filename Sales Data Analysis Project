@@ -1,0 +1,141 @@
+use SuperStoreOrders
+
+Create procedure all_data
+as 
+select * from Sales_SSO
+Go;
+
+
+
+EXEC sp_rename 'Sales_SSO.﻿order_id', 'order_id', 'COLUMN';
+
+
+#Which products are selling the most?
+
+Select product_name,country, SUM(quantity) as Total_Quantity_Sold
+From Sales_SSO
+Group By product_name, country
+order by Total_Quantity_Sold Desc
+
+#What quantity supplied by region?
+
+Select region, SUM(quantity) as Quantity_By_Region
+from Sales_SSO
+Group by region
+
+#Canon imageCLASS 2200 Advanced Copier
+
+#Which product has the highest profit
+SELECT product_name, SUM(profit) AS max_profit
+FROM Sales_SSO
+GROUP BY product_name
+ORDER BY max_profit DESC
+
+#Which market has the highest sales?
+Select market, sum(sales) as highest_sales
+from Sales_SSO
+group by market
+order by highest_sales desc
+
+
+exec all_data
+
+#Discriminating segments and product name seprately
+SELECT segment, product_name
+FROM Sales_SSO
+GROUP BY segment, product_name;
+
+#What are total number of products for each segments 
+SELECT segment, COUNT(DISTINCT product_name) AS num_products
+FROM Sales_SSO
+GROUP BY segment;
+
+#Which product has the highest sales for the year 2014?
+select product_name, sum(sales) as highest_sales
+from Sales_SSO
+where year = 2014
+Group by product_name
+order by highest_sales desc
+
+
+#Sales Analysis:
+
+#1. Which products are selling the most?
+
+SELECT product_name, SUM(quantity) AS total_quantity
+FROM Sales_SSO
+GROUP BY product_name
+ORDER BY total_quantity DESC
+
+#2. Which regions or countries are generating the most revenue?
+
+SELECT region, country, SUM(sales) AS total_sales
+FROM Sales_SSO
+GROUP BY region, country
+ORDER BY total_sales DESC;
+
+#3. Which sales channels (e.g., online vs. in-store) are most effective?
+
+SELECT ship_mode, AVG(profit) AS average_profit
+FROM Sales_SSO
+GROUP BY ship_mode
+ORDER BY average_profit DESC;
+
+
+#Customer analysis:
+
+#1. Which customer segments are the most profitable?
+
+SELECT segment, SUM(profit) AS total_profit
+FROM Sales_SSO
+GROUP BY segment
+ORDER BY total_profit DESC;
+
+
+#2. Which customers are the most loyal?
+
+SELECT customer_name, COUNT(DISTINCT order_id) AS total_orders
+FROM Sales_SSO
+GROUP BY customer_name
+ORDER BY total_orders DESC
+
+
+#3. Which products are most likely to be damaged during shipping?
+
+SELECT sub_category, SUM(CASE WHEN shipping_cost > 100 THEN 1 ELSE 0 END) AS damaged_shipments
+FROM Sales_SSO
+GROUP BY sub_category
+ORDER BY damaged_shipments DESC;
+
+#4. Which types of promotions generate the most sales?
+SELECT order_priority, SUM(sales) AS total_sales
+FROM Sales_SSO
+GROUP BY order_priority
+ORDER BY total_sales DESC;
+
+
+
+exec all_data
+
+#Inventory analysis
+
+#1. Which products are in the highest demand?
+SELECT product_name, SUM(quantity) AS total_quantity
+FROM Sales_SSO
+GROUP BY product_name
+ORDER BY total_quantity DESC;
+
+#2.Which products are overstocked or understocked?
+SELECT product_name, SUM(quantity) AS total_quantity, SUM(sales) AS total_sales
+FROM Sales_SSO
+GROUP BY product_name
+HAVING SUM(quantity) < (SELECT AVG(quantity) FROM Sales_SSO) OR SUM(quantity) > (SELECT AVG(quantity) FROM Sales_SSO)
+ORDER BY total_sales DESC;
+
+#3. Which products are most likely to become obsolete or go out of season?
+SELECT sub_category, AVG(profit) AS avg_profit
+FROM Sales_SSO
+WHERE year = 2014
+GROUP BY sub_category
+ORDER BY avg_profit ASC;
+
